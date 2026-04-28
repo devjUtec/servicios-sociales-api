@@ -1,0 +1,9 @@
+# Copia este archivo a terraform.tfvars y rellena con tus valores reales
+# NUNCA subas el archivo terraform.tfvars al repositorio
+
+database_url         = "postgresql://usuario:password@endpoint:5432/db_name?schema=public"
+jwt_private_key      = "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+jwt_public_key       = "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+google_client_id     = "tu-google-client-id"
+google_client_secret = "tu-google-client-secret"
+smtp_pass            = "tu-smtp-password"

@@ -1,0 +1,259 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------------------------------------------------------
+// INTERNAL USERS ENGINE (Admins, Doctors, Staff)
+// ---------------------------------------------------------
+model User {
+  id              String          @id @default(uuid())
+  email           String          @unique
+  passwordHash    String?
+  firstName       String?
+  lastName        String?
+  phone           String?
+  isActive        Boolean         @default(true)
+  isVerified      Boolean         @default(false)
+  lastLogin       DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  roles           UserRole[]
+  oauthIdentities OAuthIdentity[]
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
+
+  @@index([email])
+}
+
+model Role {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  permissions Json
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  users       UserRole[]
+
+  @@index([name])
+}
+
+model UserRole {
+  userId     String
+  roleId     String
+  assignedAt DateTime @default(now())
+  assignedBy String?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model OAuthIdentity {
+  id             String   @id @default(uuid())
+  userId         String
+  provider       String
+  providerUserId String
+  email          String?
+  profileData    Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@index([provider])
+}
+
+// ---------------------------------------------------------
+// CITIZEN ENGINE (External Users / Social Service Beneficiaries)
+// ---------------------------------------------------------
+model Citizen {
+  id                String          @id @default(uuid())
+  email             String          @unique
+  passwordHash      String
+  idNumber          String          @unique // (DUI)
+  taxId             String?         @unique // (NIT)
+  affiliationNumber String          @unique
+  firstName         String
+  lastName          String
+  phone             String?
+  address           String?
+  dateOfBirth       DateTime?
+  gender            String?
+  isActive          Boolean         @default(true)
+  isVerified        Boolean         @default(false)
+  lastLogin         DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  affiliations      Affiliation[]
+  contributions     Contribution[]
+  medicalRecords    MedicalRecord[]
+  refreshTokens     CitizenRefreshToken[]
+
+  @@index([idNumber])
+  @@index([affiliationNumber])
+  @@index([email])
+}
+
+model Affiliation {
+  id                String         @id @default(uuid())
+  citizenId         String
+  affiliationNumber String         @unique
+  affiliationType   String // (ISSS, AFP, etc)
+  institutionType   String
+  status            String         @default("active")
+  affiliationDate   DateTime       @default(now())
+  terminationDate   DateTime?
+  terminationReason String?
+  employer          String?
+  employerTaxId     String?
+  department        String?
+  observations      String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  citizen           Citizen        @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+  contributions     Contribution[]
+
+  @@index([citizenId])
+  @@index([status])
+}
+
+model Contribution {
+  id               String      @id @default(uuid())
+  affiliationId    String
+  citizenId        String
+  period           String // (YYYY-MM)
+  baseAmount       Decimal     @db.Decimal(10, 2)
+  percentage       Decimal     @db.Decimal(5, 2) @default(7.50)
+  contributionAmount Decimal   @db.Decimal(10, 2)
+  employer         String
+  employerTaxId    String
+  status           String      @default("paid")
+  paymentDate      DateTime?
+  paymentMethod    String?
+  receiptNumber    String?
+  reference        String?
+  observations     String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  affiliation      Affiliation @relation(fields: [affiliationId], references: [id], onDelete: Cascade)
+  citizen          Citizen     @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+
+  @@unique([affiliationId, period])
+  @@index([citizenId])
+  @@index([affiliationId])
+}
+
+model MedicalRecord {
+  id               String    @id @default(uuid())
+  citizenId        String
+  recordNumber     String    @unique
+  recordType       String
+  diagnosis        String?
+  treatment        String?
+  primaryDoctor    String?
+  specialty        String?
+  department       String
+  visitDate        DateTime
+  closureDate      DateTime?
+  status           String    @default("open")
+  priority         String    @default("normal")
+  notes            String?
+  closureNotes     String?
+  attachments      Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  citizen          Citizen   @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+
+  @@index([citizenId])
+  @@index([recordNumber])
+  @@index([status])
+}
+
+// ---------------------------------------------------------
+// COMMON SYSTEMS (Security, Logs, Session)
+// ---------------------------------------------------------
+
+model OTP {
+  id        String   @id @default(uuid())
+  email     String
+  citizenId String?
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([code])
+  @@index([citizenId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+  revokedAt DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CitizenRefreshToken {
+  id        String   @id @default(uuid())
+  citizenId String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+  revokedAt DateTime?
+  citizen   Citizen  @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+
+  @@index([citizenId])
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?
+  citizenId    String?
+  email        String?
+  action       String
+  resourceType String?
+  resourceId   String?
+  ipAddress    String?
+  userAgent    String?
+  metadata     Json?
+  success      Boolean  @default(true)
+  errorMessage String?
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([citizenId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model IpBlacklist {
+  id               String   @id @default(uuid())
+  ipAddress        String   @unique
+  strikes          Int      @default(1)
+  isPermanent      Boolean  @default(false)
+  reason           String?
+  lastBlockedAt    DateTime @default(now())
+  expiresAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([ipAddress])
+}

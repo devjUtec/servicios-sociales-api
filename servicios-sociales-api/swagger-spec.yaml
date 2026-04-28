@@ -1,0 +1,909 @@
+openapi: 3.0.0
+paths:
+  /api/auth/captcha:
+    get:
+      operationId: AuthController_getCaptcha
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      summary: Generar un CAPTCHA visual
+      tags:
+        - auth
+  /api/auth/activate:
+    post:
+      operationId: AuthController_activate
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      summary: Activar cuenta institucional con contraseña
+      tags:
+        - auth
+  /api/auth/register:
+    post:
+      operationId: AuthController_register
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDto'
+      responses:
+        '201':
+          description: ''
+      summary: Registrar un nuevo usuario administrativo (Uso interno)
+      tags:
+        - auth
+  /api/auth/login:
+    post:
+      operationId: AuthController_login
+      parameters:
+        - name: user-agent
+          required: true
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '201':
+          description: ''
+      summary: Iniciar sesión (Personal Administrativo/Médico)
+      tags:
+        - auth
+  /api/auth/citizen/login:
+    post:
+      operationId: AuthController_citizenLogin
+      parameters:
+        - name: user-agent
+          required: true
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CitizenLoginDto'
+      responses:
+        '201':
+          description: ''
+      summary: Iniciar sesión (Ciudadanos/Cotizantes) - Paso 1
+      tags:
+        - auth
+  /api/auth/verify-otp:
+    post:
+      operationId: AuthController_verifyInternalOtp
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpDto'
+      responses:
+        '201':
+          description: ''
+      summary: Validar código OTP y obtener token (Personal Interno) - Paso 2
+      tags:
+        - auth
+  /api/auth/citizen/verify-otp:
+    post:
+      operationId: AuthController_verifyOtp
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpDto'
+      responses:
+        '201':
+          description: ''
+      summary: Validar código OTP y obtener token (Ciudadanos) - Paso 2
+      tags:
+        - auth
+  /api/auth/refresh:
+    post:
+      operationId: AuthController_refresh
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      summary: Renovar el access token usando un refresh token
+      tags:
+        - auth
+  /api/auth/logout:
+    post:
+      operationId: AuthController_logout
+      parameters:
+        - name: user-agent
+          required: true
+          in: header
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+      summary: Cerrar sesión e invalidar el refresh token
+      tags:
+        - auth
+  /api/auth/citizen/activate:
+    post:
+      operationId: AuthController_activateCitizenAccount
+      parameters:
+        - name: user-agent
+          required: true
+          in: header
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+      summary: Activar cuenta ciudadana y crear contraseña desde invitación
+      tags:
+        - auth
+  /api/oauth/google:
+    get:
+      operationId: OAuthController_googleAuth
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      summary: Iniciar sesión con Google
+      tags:
+        - oauth
+  /api/oauth/callback/google:
+    get:
+      operationId: OAuthController_googleAuthRedirect
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - oauth
+  /api/oauth/azure:
+    get:
+      operationId: OAuthController_azureAuth
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      summary: Iniciar sesión con Azure AD
+      tags:
+        - oauth
+  /api/oauth/callback/azure:
+    get:
+      operationId: OAuthController_azureAuthRedirect
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - oauth
+  /api/users:
+    post:
+      operationId: UsersController_create
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Registrar un nuevo usuario (Personal Interno)
+      tags:
+        - users
+    get:
+      operationId: UsersController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      summary: Listar usuarios del sistema (Personal)
+      tags:
+        - users
+  /api/users/{id}:
+    get:
+      operationId: UsersController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - JWT-auth: []
+      summary: Obtener un usuario por ID
+      tags:
+        - users
+    patch:
+      operationId: UsersController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Actualizar datos básicos de un usuario
+      tags:
+        - users
+    delete:
+      operationId: UsersController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Eliminar un usuario del sistema
+      tags:
+        - users
+  /api/roles:
+    get:
+      operationId: RolesController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Listar todos los roles
+      tags:
+        - roles
+  /api/roles/{id}:
+    get:
+      operationId: RolesController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Obtener un rol por ID
+      tags:
+        - roles
+  /api/affiliation:
+    post:
+      operationId: AffiliationController_create
+      parameters:
+        - name: user-agent
+          required: true
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAffiliationDto'
+      responses:
+        '201':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Crear una nueva afiliación
+      tags:
+        - affiliation
+    get:
+      operationId: AffiliationController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      summary: Listar todas las afiliaciones (Personal Interno)
+      tags:
+        - affiliation
+  /api/affiliation/me:
+    get:
+      operationId: AffiliationController_findMyAffiliations
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      tags:
+        - affiliation
+  /api/affiliation/find/{number}:
+    get:
+      operationId: AffiliationController_findByNumber
+      parameters:
+        - name: number
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - JWT-auth: []
+      summary: Buscar una afiliación por número de carnet
+      tags:
+        - affiliation
+  /api/affiliation/{id}:
+    get:
+      operationId: AffiliationController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - JWT-auth: []
+      summary: Obtener detalles de una afiliación por ID
+      tags:
+        - affiliation
+    patch:
+      operationId: AffiliationController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: user-agent
+          required: true
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Actualizar una afiliación (Solo Super Admin)
+      tags:
+        - affiliation
+    delete:
+      operationId: AffiliationController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: user-agent
+          required: true
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Eliminar una afiliación (Solo Super Admin)
+      tags:
+        - affiliation
+  /api/affiliation/citizen/{citizenId}:
+    get:
+      operationId: AffiliationController_findByCitizenId
+      parameters:
+        - name: citizenId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      summary: Obtener afiliaciones de un ciudadano específico
+      tags:
+        - affiliation
+  /api/affiliation/public-test-create:
+    post:
+      operationId: AffiliationController_publicTest
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAffiliationDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - JWT-auth: []
+      summary: Test público para afiliación
+      tags:
+        - affiliation
+  /api/contribution:
+    post:
+      operationId: ContributionController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContributionDto'
+      responses:
+        '201':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Registrar una nueva contribución
+      tags:
+        - contribution
+    get:
+      operationId: ContributionController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      summary: Listar todas las cotizaciones (Personal Interno)
+      tags:
+        - contribution
+  /api/contribution/me:
+    get:
+      operationId: ContributionController_findMyContributions
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      tags:
+        - contribution
+  /api/contribution/citizen/{citizenId}:
+    get:
+      operationId: ContributionController_findByCitizenId
+      parameters:
+        - name: citizenId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      summary: Obtener historial de contribuciones de un ciudadano
+      tags:
+        - contribution
+  /api/contribution/summary/{citizenId}:
+    get:
+      operationId: ContributionController_getSummary
+      parameters:
+        - name: citizenId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Obtener resumen de contribuciones (Total acumulado)
+      tags:
+        - contribution
+  /api/medical-record:
+    post:
+      operationId: MedicalRecordController_create
+      parameters: []
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - JWT-auth: []
+      summary: Registrar una nueva consulta médica
+      tags:
+        - medical-record
+    get:
+      operationId: MedicalRecordController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      summary: Listar todos los expedientes
+      tags:
+        - medical-record
+  /api/medical-record/{id}:
+    get:
+      operationId: MedicalRecordController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - JWT-auth: []
+      summary: Obtener un expediente por ID
+      tags:
+        - medical-record
+  /api/medical-record/citizen/{citizenId}:
+    get:
+      operationId: MedicalRecordController_findByCitizenId
+      parameters:
+        - name: citizenId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Obtener expedientes de un ciudadano específico
+      tags:
+        - medical-record
+  /api/audit:
+    get:
+      operationId: AuditController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      security:
+        - JWT-auth: []
+      summary: Listar los últimos 100 logs de auditoría (Solo Admin)
+      tags:
+        - audit
+  /health:
+    get:
+      operationId: HealthController_check
+      parameters: []
+      responses:
+        '200':
+          description: Sistema operativo
+      summary: Verificar el estado de salud del sistema
+      tags:
+        - health
+  /api/stats/dashboard:
+    get:
+      operationId: StatsController_getDashboardStats
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      security:
+        - JWT-auth: []
+      summary: Obtener estadísticas reales para el Panel de Control
+      tags:
+        - stats
+info:
+  title: Servicios Sociales API
+  description: |-
+    API de autenticación y gestión para instituciones de servicios sociales de El Salvador.
+          
+    **Instituciones soportadas:** ISSS, AFP, ISBM, IPSFA, INPEP
+
+    **Autenticación:** JWT Bearer Token (RS256)
+
+    **Roles disponibles:** super_admin, doctor, institution_staff, citizen
+
+    **Credenciales de prueba:**
+    - Super Admin: admin@ssapi.gob.sv / Admin123!
+    - Ciudadanos: Usar datos generados en la tabla Citizen (ej. juan.perez@example.com)
+  version: 1.0.0
+  contact: {}
+tags:
+  - name: auth
+    description: Autenticación y gestión de sesiones
+  - name: oauth
+    description: Autenticación OAuth2 (Google, Azure)
+  - name: users
+    description: Gestión de personal interno
+  - name: roles
+    description: Gestión de roles y permisos
+  - name: affiliation
+    description: Gestión de afiliaciones
+  - name: contribution
+    description: Gestión de contribuciones y pagos
+  - name: medical-record
+    description: Expedientes médicos (solo instituciones de salud)
+  - name: audit
+    description: Logs de auditoría
+  - name: health
+    description: Estado del sistema
+servers: []
+components:
+  securitySchemes:
+    JWT-auth:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      name: JWT
+      description: Ingresa tu JWT access token
+      in: header
+  schemas:
+    RegisterDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Correo electrónico principal
+          format: email
+        password:
+          type: string
+          description: Contraseña con requisitos de seguridad
+          minLength: 8
+          pattern: /((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/
+        firstName:
+          type: string
+          description: Nombres del usuario
+        lastName:
+          type: string
+          description: Apellidos del usuario
+        dui:
+          type: string
+          description: Documento Único de Identidad (Opcional)
+          pattern: /^\d{8}-\d{1}$/
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+    LoginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Correo institucional o administrativo
+          format: email
+        password:
+          type: string
+          description: Contraseña de acceso
+          minLength: 8
+        captchaToken:
+          type: string
+          description: Token de Google reCAPTCHA v3 (Invisible)
+        captchaAnswer:
+          type: string
+          description: Respuesta del CAPTCHA visual (Letras)
+        captchaId:
+          type: string
+          description: ID del CAPTCHA visual generado
+      required:
+        - email
+        - password
+    CitizenLoginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Correo del ciudadano
+          format: email
+        affiliationNumber:
+          type: string
+          description: Número de carnet/afiliación
+        password:
+          type: string
+          description: Contraseña del ciudadano
+        captchaToken:
+          type: string
+          description: Token de Google reCAPTCHA v3 (Invisible)
+        captchaAnswer:
+          type: string
+          description: Respuesta del CAPTCHA visual (Letras)
+        captchaId:
+          type: string
+          description: ID del CAPTCHA visual generado
+      required:
+        - email
+        - affiliationNumber
+        - password
+    VerifyOtpDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Correo del usuario a verificar
+          format: email
+        code:
+          type: string
+          description: Código OTP recibido por correo
+      required:
+        - email
+        - code
+    CreateAffiliationDto:
+      type: object
+      properties:
+        citizenId:
+          type: string
+          description: ID del ciudadano relacionado
+          format: uuid
+        affiliationNumber:
+          type: string
+          description: Número correlativo de afiliación
+        firstName:
+          type: string
+          description: Primer nombre
+        lastName:
+          type: string
+          description: Primer apellido
+        email:
+          type: string
+          description: Correo de contacto
+        idNumber:
+          type: string
+          description: Número de DUI o Documento
+        affiliationType:
+          type: string
+          description: 'Tipo de afiliación (ej: Trabajador Activo)'
+        institutionType:
+          type: string
+          description: 'Institución (ej: ISSS, AFP)'
+        employer:
+          type: string
+          description: Nombre del empleador
+        employerTaxId:
+          type: string
+          description: NIT del empleador
+        department:
+          type: string
+          description: Departamento de residencia
+        observations:
+          type: string
+          description: Observaciones adicionales
+      required:
+        - affiliationType
+        - institutionType
+    CreateContributionDto:
+      type: object
+      properties:
+        affiliationId:
+          type: string
+          description: ID de la afiliación relacionada
+          format: uuid
+        citizenId:
+          type: string
+          description: ID del ciudadano
+          format: uuid
+        period:
+          type: string
+          description: 'Período de la cotización (ej: 2024-03)'
+        baseAmount:
+          type: number
+          description: Salario base reportado
+        contributionAmount:
+          type: number
+          description: Monto de la contribución
+        employer:
+          type: string
+          description: Nombre del empleador
+        employerTaxId:
+          type: string
+          description: NIT del empleador
+        status:
+          type: string
+          description: Estado del pago (paid, pending)
+        paymentDate:
+          format: date-time
+          type: string
+          description: Fecha de pago
+      required:
+        - affiliationId
+        - citizenId
+        - period
+        - baseAmount
+        - contributionAmount
+        - employer
+        - employerTaxId

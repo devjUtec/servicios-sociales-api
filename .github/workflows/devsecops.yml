@@ -1,0 +1,110 @@
+name: DevSecOps Pipeline (Security Social System)
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  security_scans:
+    name: Security Analysis (SAST, SCA, Trivy)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './servicios-sociales-api/package-lock.json'
+
+      # 🔍 STEP 1: SCA (Software Composition Analysis) - Snyk
+      - name: Snyk Security Scan (SCA)
+        continue-on-error: true
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+          directory: ./servicios-sociales-api
+
+      # 🔍 STEP 2: SAST (Static Application Security Testing) - SonarQube
+      - name: SonarQube Scan (SAST)
+        continue-on-error: true
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: ./servicios-sociales-api
+
+      # 🔍 STEP 3: Build & Container Scan - Trivy
+      - name: Build Docker Image
+        run: |
+          docker build -t ss-api:latest ./servicios-sociales-api
+
+      - name: Trivy Container Scan (Security)
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ss-api:latest'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  deploy_to_aws:
+    name: Continuous Deployment (AWS ECS)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag, and Push Image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: servicios-sociales-api
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./servicios-sociales-api
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Update Amazon ECS Service
+        run: |
+          aws ecs update-service --cluster servicios-sociales-cluster --service api-service --force-new-deployment
+
+  dast_scan:
+    name: Dynamic Security Scan (DAST)
+    needs: deploy_to_aws
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: OWASP ZAP Baseline Scan (DAST)
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: 'https://api.tu-institucion.gob.sv/api/health' # URL Real de tu despliegue en AWS
+          rules_file_name: '.zap/rules.tsv'
+          fail_action: false
