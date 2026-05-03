@@ -281,7 +281,6 @@ const CitizenLoginPage: React.FC = () => {
                                             textAlign: 'center',
                                             fontWeight: '700',
                                             letterSpacing: '3px',
-                                            textTransform: 'uppercase',
                                             fontSize: '1rem',
                                             height: '48px',
                                             width: '100%',

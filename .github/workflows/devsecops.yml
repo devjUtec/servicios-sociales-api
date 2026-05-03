@@ -81,20 +81,30 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, Tag, and Push Image to ECR
+      - name: Build, Tag, and Push Images to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: servicios-sociales-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./servicios-sociales-api
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          # API (Backend)
+          docker build -t $ECR_REGISTRY/servicios-sociales-api:$IMAGE_TAG ./servicios-sociales-api
+          docker push $ECR_REGISTRY/servicios-sociales-api:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/servicios-sociales-api:$IMAGE_TAG $ECR_REGISTRY/servicios-sociales-api:latest
+          docker push $ECR_REGISTRY/servicios-sociales-api:latest
+          
+          # Web (Frontend)
+          docker build -t $ECR_REGISTRY/servicios-sociales-web:$IMAGE_TAG ./servicios-sociales-web
+          docker push $ECR_REGISTRY/servicios-sociales-web:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/servicios-sociales-web:$IMAGE_TAG $ECR_REGISTRY/servicios-sociales-web:latest
+          docker push $ECR_REGISTRY/servicios-sociales-web:latest
 
-      - name: Update Amazon ECS Service
+      - name: Update Amazon ECS Services
         run: |
+          # Actualizar API
           aws ecs update-service --cluster servicios-sociales-cluster --service api-service --force-new-deployment
+          
+          # Actualizar WEB
+          aws ecs update-service --cluster servicios-sociales-cluster --service web-service --force-new-deployment
 
   dast_scan:
     name: Dynamic Security Scan (DAST)

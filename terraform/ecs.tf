@@ -96,7 +96,6 @@ resource "aws_security_group" "lb_sg" {
   name        = "alb-security-group"
   vpc_id      = aws_vpc.main.id
 
-  # Permitir entrada desde cualquier lugar (luego lo restringiremos)
   ingress {
     from_port   = 80
     to_port     = 80
@@ -116,7 +115,6 @@ resource "aws_security_group" "ecs_tasks_sg" {
   name        = "ecs-tasks-security-group"
   vpc_id      = aws_vpc.main.id
 
-  # Canal Público: Solo tráfico desde el Load Balancer
   ingress {
     from_port       = 80
     to_port         = 80

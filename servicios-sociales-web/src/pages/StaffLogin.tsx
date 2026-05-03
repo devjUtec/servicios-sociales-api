@@ -225,7 +225,6 @@ const StaffLoginPage: React.FC = () => {
                                                 textAlign: 'center',
                                                 fontWeight: '800',
                                                 letterSpacing: '2px',
-                                                textTransform: 'uppercase',
                                                 fontSize: '0.9rem',
                                                 height: '42px',
                                                 width: '100%',
@@ -253,7 +252,6 @@ const StaffLoginPage: React.FC = () => {
                                 {loading ? 'Verificando...' : 'Iniciar Sesión'}
                                 {!loading && <ChevronRight size={18} />}
                             </button>
-
                             <div style={{ textAlign: 'center' }}>
                                 <a href="#" style={{ color: '#60a5fa', fontSize: '0.8125rem', textDecoration: 'none', fontWeight: '500' }}>
                                     ¿Problemas de acceso? Contacte a soporte IT
