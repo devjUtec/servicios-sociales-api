@@ -50,19 +50,14 @@ cp .env.example .env
 ```
 > **Nota:** Edita el archivo `.env` con tus credenciales locales. Para el correo, puedes usar **Ethereal** (ver sección de correo abajo).
 
-### 4. Generar claves RSA para JWT
-El sistema usa firmas asimétricas (RS256). Debes generar un par de llaves:
+### 4. Generar claves RSA y archivo .env (Automático)
+El sistema usa firmas asimétricas (RS256) para los JWT. Puedes generar automáticamente tanto estas claves como tu archivo `.env` ejecutando nuestro script utilitario:
+
 ```bash
-# Crear carpeta para claves
-mkdir keys
-
-# Generar clave privada
-openssl genrsa -out keys/private.pem 2048
-
-# Generar clave pública
-openssl rsa -in keys/private.pem -pubout -out keys/public.pem
+node scripts/generate-keys.js
 ```
-Luego, copia el contenido de cada archivo PEM en las variables `JWT_PRIVATE_KEY` y `JWT_PUBLIC_KEY` de tu `.env`.
+
+> **Nota:** Este script creará la carpeta `keys/` con tus llaves y copiará el `.env.example` a un nuevo `.env` inyectando las llaves correspondientes por ti.
 
 ### 5. Levantar infraestructura (Docker)
 Asegúrate de que Docker Desktop esté corriendo y ejecuta:
