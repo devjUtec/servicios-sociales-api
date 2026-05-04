@@ -167,6 +167,7 @@ resource "aws_ecs_task_definition" "api" {
       { name = "GOOGLE_CLIENT_SECRET", value = var.google_client_secret },
       { name = "GOOGLE_CALLBACK_URL", value = "http://${aws_alb.main.dns_name}/api/oauth/callback/google" },
       { name = "ALLOWED_ORIGINS", value = "http://${aws_alb.main.dns_name}" },
+      { name = "RECAPTCHA_SECRET_KEY", value = var.recaptcha_secret_key },
       { name = "AZURE_CLIENT_ID", value = "dummy-azure-client-id" },
       { name = "AZURE_CLIENT_SECRET", value = "dummy-azure-client-secret" },
       { name = "AZURE_TENANT_ID", value = "dummy-azure-tenant-id" },

@@ -32,3 +32,6 @@ variable "smtp_pass" {
   type        = string
   sensitive   = true
 }
+
+variable "recaptcha_secret_key" { type = string }
+
