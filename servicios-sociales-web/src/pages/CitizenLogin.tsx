@@ -57,10 +57,10 @@ const CitizenLoginPage: React.FC = () => {
         setError('');
         try {
             const captchaToken = await executeRecaptcha('citizen_login');
-            const result = await citizenLogin({ 
-                email, 
-                password, 
-                affiliationNumber: affiliation, 
+            const result = await citizenLogin({
+                email,
+                password,
+                affiliationNumber: affiliation,
                 captchaToken,
                 captchaAnswer, // CAPTCHA manual
                 captchaId      // ID del CAPTCHA manual
@@ -186,7 +186,7 @@ const CitizenLoginPage: React.FC = () => {
                         Portal del Ciudadano
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                        {!otpStep ? 'Acceda a sus servicios sociales de forma rápida y segura' : 'Verificación de dos pasos requerida'}
+                        {!otpStep ? 'Acceda a sus servicios sociales de forma mas rápida y segura' : 'Verificación de dos pasos requerida'}
                     </p>
                 </div>
 
@@ -231,14 +231,14 @@ const CitizenLoginPage: React.FC = () => {
                                 <label style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.05em' }}>
                                     <ShieldCheck size={14} color="var(--success)" /> VERIFICACIÓN HUMANA
                                 </label>
-                                <button 
-                                    type="button" 
-                                    onClick={fetchCaptcha} 
+                                <button
+                                    type="button"
+                                    onClick={fetchCaptcha}
                                     disabled={refreshingCaptcha}
-                                    style={{ 
-                                        background: 'transparent', 
-                                        border: 'none', 
-                                        cursor: 'pointer', 
+                                    style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
                                         color: 'var(--text-secondary)',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -252,14 +252,14 @@ const CitizenLoginPage: React.FC = () => {
                                     <RefreshCcw size={12} className={refreshingCaptcha ? 'animate-spin' : ''} /> Actualizar
                                 </button>
                             </div>
-                            
+
                             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'stretch' }}>
-                                <div 
+                                <div
                                     className="captcha-container"
-                                    dangerouslySetInnerHTML={{ __html: captchaSvg.replace('<svg ', '<svg style="width:100%; height:100%;" ') }} 
-                                    style={{ 
+                                    dangerouslySetInnerHTML={{ __html: captchaSvg.replace('<svg ', '<svg style="width:100%; height:100%;" ') }}
+                                    style={{
                                         backgroundColor: 'white', // Fondo blanco para máxima legibilidad del CAPTCHA
-                                        borderRadius: '6px', 
+                                        borderRadius: '6px',
                                         height: '48px',
                                         flex: '1',
                                         display: 'flex',
@@ -270,12 +270,12 @@ const CitizenLoginPage: React.FC = () => {
                                     }}
                                 />
                                 <div style={{ flex: '1' }}>
-                                    <input 
-                                        type="text" 
-                                        placeholder="Ingrese el texto" 
-                                        required 
+                                    <input
+                                        type="text"
+                                        placeholder="Ingrese el texto"
+                                        required
                                         autoComplete="off"
-                                        value={captchaAnswer} 
+                                        value={captchaAnswer}
                                         onChange={(e) => setCaptchaAnswer(e.target.value)}
                                         style={{
                                             textAlign: 'center',

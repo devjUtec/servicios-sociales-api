@@ -28,12 +28,18 @@ import { OpaModule } from './opa/opa.module';
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        throttlers: [{ ttl: 60000, limit: 100 }],
-        storage: new ThrottlerStorageRedisService(
-          new Redis(config.get<string>('REDIS_URL', 'redis://localhost:6379')),
-        ),
-      }),
+      useFactory: (config: ConfigService) => {
+        const redisHost = config.get<string>('REDIS_HOST', '127.0.0.1');
+        const redisPort = config.get<number>('REDIS_PORT', 6379);
+        // Soporta tanto REDIS_URL (local) como REDIS_HOST+REDIS_PORT (ECS/AWS)
+        const redisUrl = config.get<string>('REDIS_URL') || `redis://${redisHost}:${redisPort}`;
+        return {
+          throttlers: [{ ttl: 60000, limit: 100 }],
+          storage: new ThrottlerStorageRedisService(
+            new Redis(redisUrl),
+          ),
+        };
+      },
     }),
     PrismaModule,
     AuthModule,
