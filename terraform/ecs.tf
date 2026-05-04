@@ -157,6 +157,7 @@ resource "aws_ecs_task_definition" "api" {
     environment = [
       { name = "REDIS_HOST", value = "${aws_elasticache_cluster.redis.cache_nodes[0].address}" },
       { name = "REDIS_PORT", value = "6379" },
+      { name = "REDIS_URL", value = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379" },
       { name = "OPA_URL", value = "http://localhost:8181/v1/data/authz/allow" },
       { name = "DATABASE_URL", value = var.database_url },
       { name = "NODE_ENV", value = "production" },
