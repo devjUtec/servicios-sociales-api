@@ -16,19 +16,23 @@ import { MailService } from '../mail/mail.service';
 import { CitizenLoginDto } from './dto/citizen-login.dto';
 import * as svgCaptcha from 'svg-captcha';
 import { v4 as uuidv4 } from 'uuid';
+import { Redis } from 'ioredis';
 
 
 @Injectable()
 export class AuthService {
+    private redisClient: Redis;
+
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
         private configService: ConfigService,
         private auditService: AuditService,
         private mailService: MailService,
-    ) { }
-
-    private visualCaptchas = new Map<string, { code: string; expires: number }>();
+    ) {
+        const redisUrl = this.configService.get<string>('REDIS_URL') || 'redis://localhost:6379';
+        this.redisClient = new Redis(redisUrl);
+    }
 
     async activateAccount(email: string, password: string) {
         const user = await this.prisma.user.findUnique({
@@ -608,16 +612,8 @@ export class AuthService {
         });
 
         const id = uuidv4();
-        // Expira en 5 minutos
-        const expires = Date.now() + 5 * 60 * 1000;
-        
-        this.visualCaptchas.set(id, {
-            code: captcha.text.toLowerCase(),
-            expires
-        });
-
-        // Limpiar captchas viejos cada vez que se genera uno (básico)
-        this.cleanupCaptchas();
+        // Guardar en Redis con expiración de 5 minutos (300 segundos)
+        await this.redisClient.set(`captcha:${id}`, captcha.text.toLowerCase(), 'EX', 300);
 
         return {
             id,
@@ -647,20 +643,16 @@ export class AuthService {
 
         // 1. Validar CAPTCHA Visual (Letras) si se proporciona
         if (answer && id) {
-            const stored = this.visualCaptchas.get(id);
-            if (!stored) return false;
+            const storedCode = await this.redisClient.get(`captcha:${id}`);
             
-            if (Date.now() > stored.expires) {
-                this.visualCaptchas.delete(id);
-                return false;
-            }
+            if (!storedCode) return false;
 
-            if (stored.code !== answer.toLowerCase()) {
+            if (storedCode !== answer.toLowerCase()) {
                 return false;
             }
             
             // Consumir el captcha para que no se use dos veces
-            this.visualCaptchas.delete(id);
+            await this.redisClient.del(`captcha:${id}`);
             return true;
         }
 
