@@ -44,6 +44,12 @@ resource "aws_alb_target_group" "api" {
     healthy_threshold   = 2
     unhealthy_threshold = 10
   }
+
+  stickiness {
+    type            = "lb_cookie"
+    cookie_duration = 300
+    enabled         = true
+  }
 }
 
 # Grupo de Destino para la Web (Frontend)
