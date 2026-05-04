@@ -92,10 +92,11 @@ jobs:
           docker tag $ECR_REGISTRY/servicios-sociales-api:$IMAGE_TAG $ECR_REGISTRY/servicios-sociales-api:latest
           docker push $ECR_REGISTRY/servicios-sociales-api:latest
           
-          # Web (Frontend) - Pasar VITE_API_URL para que Vite lo bake en el bundle de producción
+          # Web (Frontend) - Pasar vars VITE_* para que Vite las bake en el bundle de producción
           docker build \
             --target production \
             --build-arg VITE_API_URL=/api \
+            --build-arg VITE_RECAPTCHA_SITE_KEY=${{ secrets.VITE_RECAPTCHA_SITE_KEY }} \
             -t $ECR_REGISTRY/servicios-sociales-web:$IMAGE_TAG \
             ./servicios-sociales-web
           docker push $ECR_REGISTRY/servicios-sociales-web:$IMAGE_TAG
