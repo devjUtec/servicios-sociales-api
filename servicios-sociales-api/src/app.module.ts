@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
-import Redis from 'ioredis';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -25,22 +23,14 @@ import { OpaModule } from './opa/opa.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    ThrottlerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const redisHost = config.get<string>('REDIS_HOST', '127.0.0.1');
-        const redisPort = config.get<number>('REDIS_PORT', 6379);
-        // Soporta tanto REDIS_URL (local) como REDIS_HOST+REDIS_PORT (ECS/AWS)
-        const redisUrl = config.get<string>('REDIS_URL') || `redis://${redisHost}:${redisPort}`;
-        return {
-          throttlers: [{ ttl: 60000, limit: 100 }],
-          storage: new ThrottlerStorageRedisService(
-            new Redis(redisUrl),
-          ),
-        };
+    ThrottlerModule.forRoot([
+      {
+        // Rate limiting en memoria (ElastiCache no provisionado aún en AWS)
+        // Funciona correctamente con una sola instancia ECS
+        ttl: 60000,
+        limit: 100,
       },
-    }),
+    ]),
     PrismaModule,
     AuthModule,
     OAuthModule,
