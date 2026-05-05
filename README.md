@@ -62,5 +62,25 @@ npx prisma migrate dev --name init
 npx prisma db seed
 ```
 
+## 🔐 Configuración de Servicios Externos (Google)
+
+Para que el inicio de sesión funcione correctamente en tu entorno local, necesitas configurar dos servicios de Google:
+
+### A. Google reCAPTCHA v3
+1.  Ve a [reCAPTCHA Admin Console](https://www.google.com/recaptcha/admin/).
+2.  Registra un nuevo sitio tipo **v3**.
+3.  Añade `localhost` a la lista de dominios.
+4.  Copia la **Site Key** en `servicios-sociales-web/.env` y la **Secret Key** en `servicios-sociales-api/.env`.
+
+### B. Google OAuth 2.0 (Login Social)
+1.  Crea un proyecto en [Google Cloud Console](https://console.cloud.google.com/).
+2.  Configura la "Pantalla de consentimiento de OAuth" como **External**.
+3.  En "Credenciales", crea un **ID de cliente de OAuth 2.0** para Aplicación Web.
+4.  Añade estas URIs de redireccionamiento autorizados:
+    *   `http://localhost:3001/api/oauth/callback/google`
+5.  Copia el **Client ID** y **Client Secret** en `servicios-sociales-api/.env`.
+
+---
+
 ## 📝 Documentación Adicional
-Para más detalles sobre la seguridad anti-bots, variables de entorno específicas y arquitectura del backend, revisa el [README de la API](./servicios-sociales-api/README.md).
+Para más detalles sobre la arquitectura del backend, consulta el [README de la API](./servicios-sociales-api/README.md). Para ver los detalles del pipeline de seguridad y despliegue en AWS, consulta la [Guía de Configuración DevSecOps](./md/GUIA_CONFIGURACION_DEVSECOPS.md).
